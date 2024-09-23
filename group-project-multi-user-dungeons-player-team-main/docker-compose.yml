@@ -1,0 +1,41 @@
+version: '2'
+volumes:
+    pgdata:
+services:
+    swdev-springboot:
+        build: .
+        image: "swdev-springboot"
+        container_name: "swdev-springboot"
+        volumes:
+            - .:/app/swdev/:rw
+            - ./data/root:/root/:rw
+        ports:
+            - "8080:8080"
+            - "35729:35729"
+            - "5005:5005"
+        networks:
+            swdev:
+                aliases:
+                    - swdev-springboot
+        depends_on:
+            - swdev-postgres
+    # https://hub.docker.com/_/postgres/
+    swdev-postgres:
+        image: postgres:14-bullseye
+        container_name: "swdev-postgres"
+        environment:
+            - PGDATA=/var/lib/postgresql/data/pgdata
+            - POSTGRES_PASSWORD=password
+        volumes:
+            - pgdata:/var/lib/postgresql/data/pgdata
+            - ./scripts/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+            - ./scripts/postgres/database:/app/postgres/database
+        ports:
+            - "5432:5432"
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        networks:
+            swdev:
+                aliases:
+                    - swdev-postgres
+networks:
+    swdev:
